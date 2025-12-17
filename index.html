@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DSA Visualizer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/grid.css">
+</head>
+<body>
+
+    <h1>DSA Visualizer</h1>
+
+    <!-- Controls -->
+    <div class="controls">
+        <button onclick="generateArray()">Generate Array</button>
+        <button onclick="bubbleSort()">Bubble Sort</button>
+        <button onclick="mergeSort()">Merge Sort</button>
+        <button onclick="quickSort()">Quick Sort</button>
+        <button onclick="binarySearch()">Binary Search</button>
+    </div>
+
+    <!-- Speed -->
+    <div class="controls">
+        <label>Speed</label>
+        <input type="range" min="50" max="1000" value="300" id="speedSlider">
+    </div>
+
+    <!-- Array -->
+    <div id="array-container"></div>
+
+    <h2>Pathfinding Visualizer</h2>
+
+    <!-- Pathfinding Controls -->
+    <div class="grid-controls">
+      <button onclick="createGrid()">Create Grid</button>
+      <button onclick="runBFS()">Run BFS</button>
+      <button onclick="startDFS()">Run DFS</button>
+      <button onclick="runAStar()">Run A*</button>
+    </div>
+
+    <!-- Algorithm Info Panel -->
+     <div id="info-panel">
+      <h3 id="algo-name">Algorithm: -</h3>
+      <p id="algo-time">Time: -</p>
+      <p id="algo-space">Space: -</p>
+      <p id="step-count">Steps: 0</p>
+    </div>
+
+
+    <!-- Grid -->
+    <div id="grid"></div>
+
+    <!-- Scripts (ORDER MATTERS) -->
+    <script src="js/index.js"></script>
+    <script src="js/sorting.js"></script>
+    <script src="js/searching.js"></script>
+    <script src="js/pathfinding.js"></script>
+
+</body>
+</html>

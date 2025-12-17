@@ -1,0 +1,35 @@
+#grid {
+    display: grid;
+    grid-template-columns: repeat(15, 30px);
+    gap: 3px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.cell {
+    width: 30px;
+    height: 30px;
+    background-color: #1e293b;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#info-panel {
+    width: 300px;
+    margin: 15px auto;
+    padding: 10px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+    text-align: left;
+    font-size: 14px;
+}
+
+.cell.path {
+    background-color: #facc15; /* final path */
+}
+
+
+.cell.start { background-color: #22c55e; }
+.cell.end { background-color: #ef4444; }
+.cell.wall { background-color: black; }
+.cell.visited { background-color: #38bdf8; }
