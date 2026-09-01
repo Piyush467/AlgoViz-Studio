@@ -1,35 +1,136 @@
-#grid {
-    display: grid;
-    grid-template-columns: repeat(15, 30px);
-    gap: 3px;
+/* ==========================================================================
+   PATHFINDING GRID & MAZE VISUALIZER STYLES
+   ========================================================================== */
+
+.pathfinding-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    margin-top: 20px;
+    width: 100%;
+    gap: 1rem;
 }
 
-.cell {
-    width: 30px;
-    height: 30px;
-    background-color: #1e293b;
-    border-radius: 4px;
+#grid {
+    display: grid;
+    gap: 2px;
+    background: rgba(2, 6, 23, 0.9);
+    padding: 10px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--glass-border);
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+    user-select: none;
     cursor: pointer;
 }
 
-#info-panel {
-    width: 300px;
-    margin: 15px auto;
-    padding: 10px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 10px;
-    text-align: left;
-    font-size: 14px;
+.cell {
+    width: 26px;
+    height: 26px;
+    background-color: rgba(30, 41, 59, 0.6);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    transition: transform 0.15s ease, background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: white;
+}
+
+.cell:hover {
+    transform: scale(1.15);
+    z-index: 5;
+    border-color: rgba(56, 189, 248, 0.5);
+}
+
+/* Node Types */
+.cell.start {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.8);
+    border: none;
+    animation: pulseStart 2s infinite alternate;
+}
+
+.cell.end {
+    background: linear-gradient(135deg, #f43f5e, #e11d48) !important;
+    box-shadow: 0 0 12px rgba(244, 63, 94, 0.8);
+    border: none;
+    animation: pulseEnd 2s infinite alternate;
+}
+
+.cell.wall {
+    background-color: #0f172a !important;
+    border-color: rgba(56, 189, 248, 0.2);
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9);
+    animation: wallPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.cell.weight {
+    background: linear-gradient(135deg, #b45309, #78350f) !important;
+    border-color: #d97706;
+}
+
+.cell.visited {
+    animation: visitedAnimation 1.5s ease-out forwards;
 }
 
 .cell.path {
-    background-color: #facc15; /* final path */
+    animation: shortestPathAnimation 1.5s ease-out forwards;
 }
 
+/* Animations */
+@keyframes visitedAnimation {
+    0% {
+        transform: scale(0.3);
+        background-color: rgba(139, 92, 246, 0.8);
+        border-radius: 100%;
+    }
+    50% {
+        background-color: rgba(6, 182, 212, 0.8);
+    }
+    75% {
+        transform: scale(1.2);
+        background-color: rgba(56, 189, 248, 0.7);
+    }
+    100% {
+        transform: scale(1);
+        background-color: rgba(14, 165, 233, 0.65);
+        box-shadow: 0 0 6px rgba(14, 165, 233, 0.4);
+    }
+}
 
-.cell.start { background-color: #22c55e; }
-.cell.end { background-color: #ef4444; }
-.cell.wall { background-color: black; }
-.cell.visited { background-color: #38bdf8; }
+@keyframes shortestPathAnimation {
+    0% {
+        transform: scale(0.6);
+        background-color: #facc15;
+    }
+    50% {
+        transform: scale(1.2);
+        background-color: #f59e0b;
+        box-shadow: 0 0 18px #facc15;
+    }
+    100% {
+        transform: scale(1);
+        background-color: #eab308;
+        box-shadow: 0 0 10px #eab308;
+    }
+}
+
+@keyframes wallPop {
+    0% {
+        transform: scale(0.4);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes pulseStart {
+    0% { box-shadow: 0 0 6px rgba(16, 185, 129, 0.5); }
+    100% { box-shadow: 0 0 18px rgba(16, 185, 129, 0.9); }
+}
+
+@keyframes pulseEnd {
+    0% { box-shadow: 0 0 6px rgba(244, 63, 94, 0.5); }
+    100% { box-shadow: 0 0 18px rgba(244, 63, 94, 0.9); }
+}

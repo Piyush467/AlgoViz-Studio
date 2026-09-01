@@ -1,0 +1,218 @@
+/* ==========================================================================
+   ADVANCED MODULE COMPONENTS (TREES, SEARCHING, DP, STACK/QUEUE)
+   ========================================================================== */
+
+/* Tree & Canvas Area */
+.tree-container {
+    width: 100%;
+    height: 420px;
+    position: relative;
+    overflow: hidden;
+    background: rgba(2, 6, 23, 0.4);
+    border-radius: var(--radius-sm);
+}
+
+#tree-canvas {
+    width: 100%;
+    height: 100%;
+}
+
+.node-circle {
+    fill: #1e293b;
+    stroke: var(--accent-sky);
+    stroke-width: 2px;
+    transition: all 0.3s ease;
+}
+
+.node-circle.visited {
+    fill: rgba(56, 189, 248, 0.2);
+    stroke: var(--accent-sky);
+    stroke-width: 3px;
+}
+
+.node-circle.active {
+    fill: #facc15;
+    stroke: #eab308;
+    stroke-width: 4px;
+}
+
+.node-circle.found {
+    fill: #22c55e;
+    stroke: #16a34a;
+}
+
+.node-text {
+    fill: #ffffff;
+    font-family: 'Fira Code', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+
+.tree-edge {
+    stroke: rgba(148, 163, 184, 0.4);
+    stroke-width: 2px;
+    transition: stroke 0.3s ease;
+}
+
+.tree-edge.active {
+    stroke: var(--accent-sky);
+    stroke-width: 3px;
+}
+
+/* Stack & Queue Container */
+.ds-container {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 380px;
+}
+
+.ds-box {
+    background: rgba(2, 6, 23, 0.6);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 260px;
+    height: 340px;
+}
+
+.stack-frame {
+    display: flex;
+    flex-direction: column-reverse;
+    width: 100%;
+    height: 260px;
+    border-left: 3px solid var(--accent-sky);
+    border-right: 3px solid var(--accent-sky);
+    border-bottom: 3px solid var(--accent-sky);
+    border-radius: 0 0 10px 10px;
+    padding: 6px;
+    gap: 6px;
+    overflow-y: auto;
+    background: rgba(15, 23, 42, 0.5);
+}
+
+.queue-frame {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    height: 90px;
+    border-top: 3px solid var(--accent-purple);
+    border-bottom: 3px solid var(--accent-purple);
+    padding: 6px;
+    gap: 6px;
+    overflow-x: auto;
+    background: rgba(15, 23, 42, 0.5);
+}
+
+.ds-element {
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+    color: white;
+    font-family: 'Fira Code', monospace;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.6rem;
+    border-radius: var(--radius-sm);
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    animation: pushAnim 0.3s ease-out;
+}
+
+@keyframes pushAnim {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* DP Matrix Table */
+.dp-table-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow-x: auto;
+    width: 100%;
+    padding: 1rem;
+}
+
+.dp-table {
+    border-collapse: separate;
+    border-spacing: 4px;
+    font-family: 'Fira Code', monospace;
+}
+
+.dp-table th, .dp-table td {
+    width: 42px;
+    height: 42px;
+    text-align: center;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.dp-table th {
+    background: rgba(30, 41, 59, 0.8);
+    color: var(--accent-sky);
+}
+
+.dp-table td {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    transition: all 0.25s ease;
+}
+
+.dp-table td.calculated {
+    background: rgba(56, 189, 248, 0.15);
+    color: var(--text-primary);
+    border-color: rgba(56, 189, 248, 0.3);
+}
+
+.dp-table td.active-cell {
+    background: #facc15 !important;
+    color: #0f172a !important;
+    font-weight: 800;
+    box-shadow: 0 0 14px #facc15;
+    transform: scale(1.15);
+}
+
+.dp-table td.include-cell {
+    background: #22c55e !important;
+    color: white !important;
+}
+
+/* Pointer Markers for Searching */
+.pointer-container {
+    position: absolute;
+    bottom: 5px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.pointer-badge {
+    position: absolute;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: white;
+    transition: left 0.2s ease;
+}
+.pointer-low { background: #3b82f6; }
+.pointer-high { background: #f43f5e; }
+.pointer-mid { background: #f59e0b; }

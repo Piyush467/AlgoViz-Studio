@@ -1,215 +1,421 @@
 /*************************************************
- * GRID SETUP & GLOBAL STATE
+ * ADVANCED PATHFINDING & MAZE VISUALIZER MODULE
  *************************************************/
 
-const grid = document.getElementById("grid");
-const rows = 10, cols = 15;
+const pfRows = 14;
+const pfCols = 28;
 
-let cells = [];
-let start = [0, 0];
-let end = [9, 14];
+let pfGrid = []; // 2D array storing cell types: 'empty', 'wall', 'weight'
+let pfStartNode = [3, 4];
+let pfEndNode = [10, 23];
 
-/*************************************************
- * GRID UTILITIES
- *************************************************/
+let isMouseDown = false;
+let isDraggingStart = false;
+let isDraggingEnd = false;
+let currentDrawMode = "wall"; // "wall" or "weight"
 
-// Create grid
-function createGrid() {
-    grid.innerHTML = "";
-    cells = [];
+function initPathfindingGrid() {
+    const gridContainer = document.getElementById("grid");
+    if (!gridContainer) return;
 
-    for (let r = 0; r < rows; r++) {
+    gridContainer.style.gridTemplateColumns = `repeat(${pfCols}, 26px)`;
+    gridContainer.innerHTML = "";
+    pfGrid = [];
+
+    for (let r = 0; r < pfRows; r++) {
         let row = [];
-        for (let c = 0; c < cols; c++) {
+        for (let c = 0; c < pfCols; c++) {
+            row.push("empty");
+
             const cell = document.createElement("div");
             cell.className = "cell";
+            cell.dataset.row = r;
+            cell.dataset.col = c;
+            cell.id = `cell-${r}-${c}`;
 
-            if (r === start[0] && c === start[1]) cell.classList.add("start");
-            if (r === end[0] && c === end[1]) cell.classList.add("end");
+            if (r === pfStartNode[0] && c === pfStartNode[1]) {
+                cell.classList.add("start");
+                cell.innerHTML = '<i class="fa-solid fa-play" style="font-size:10px;"></i>';
+            } else if (r === pfEndNode[0] && c === pfEndNode[1]) {
+                cell.classList.add("end");
+                cell.innerHTML = '<i class="fa-solid fa-bullseye" style="font-size:10px;"></i>';
+            }
 
-            cell.onclick = () => cell.classList.toggle("wall");
+            // Mouse Event Listeners for Drawing & Dragging
+            cell.addEventListener("mousedown", (e) => onCellMouseDown(r, c, e));
+            cell.addEventListener("mouseenter", () => onCellMouseEnter(r, c));
+            cell.addEventListener("mouseup", () => onCellMouseUp());
 
-            grid.appendChild(cell);
-            row.push(cell);
+            gridContainer.appendChild(cell);
         }
-        cells.push(row);
+        pfGrid.push(row);
+    }
+
+    document.addEventListener("mouseup", () => {
+        isMouseDown = false;
+        isDraggingStart = false;
+        isDraggingEnd = false;
+    });
+}
+
+function onCellMouseDown(r, c, e) {
+    e.preventDefault();
+    isMouseDown = true;
+
+    if (r === pfStartNode[0] && c === pfStartNode[1]) {
+        isDraggingStart = true;
+    } else if (r === pfEndNode[0] && c === pfEndNode[1]) {
+        isDraggingEnd = true;
+    } else {
+        toggleCellType(r, c);
     }
 }
 
-// Clear visited/path states
-function resetGridState() {
-    for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-            cells[r][c].classList.remove("visited", "path");
+function onCellMouseEnter(r, c) {
+    if (!isMouseDown) return;
+
+    if (isDraggingStart) {
+        if (pfGrid[r][c] !== "wall" && !(r === pfEndNode[0] && c === pfEndNode[1])) {
+            updateStartNode(r, c);
+        }
+    } else if (isDraggingEnd) {
+        if (pfGrid[r][c] !== "wall" && !(r === pfStartNode[0] && c === pfStartNode[1])) {
+            updateEndNode(r, c);
+        }
+    } else {
+        toggleCellType(r, c);
+    }
+}
+
+function onCellMouseUp() {
+    isMouseDown = false;
+    isDraggingStart = false;
+    isDraggingEnd = false;
+}
+
+function updateStartNode(r, c) {
+    const oldCell = document.getElementById(`cell-${pfStartNode[0]}-${pfStartNode[1]}`);
+    if (oldCell) {
+        oldCell.classList.remove("start");
+        oldCell.innerHTML = "";
+    }
+    pfStartNode = [r, c];
+    const newCell = document.getElementById(`cell-${r}-${c}`);
+    if (newCell) {
+        newCell.classList.add("start");
+        newCell.innerHTML = '<i class="fa-solid fa-play" style="font-size:10px;"></i>';
+    }
+}
+
+function updateEndNode(r, c) {
+    const oldCell = document.getElementById(`cell-${pfEndNode[0]}-${pfEndNode[1]}`);
+    if (oldCell) {
+        oldCell.classList.remove("end");
+        oldCell.innerHTML = "";
+    }
+    pfEndNode = [r, c];
+    const newCell = document.getElementById(`cell-${r}-${c}`);
+    if (newCell) {
+        newCell.classList.add("end");
+        newCell.innerHTML = '<i class="fa-solid fa-bullseye" style="font-size:10px;"></i>';
+    }
+}
+
+function toggleCellType(r, c) {
+    if ((r === pfStartNode[0] && c === pfStartNode[1]) || (r === pfEndNode[0] && c === pfEndNode[1])) return;
+
+    const cell = document.getElementById(`cell-${r}-${c}`);
+    if (!cell) return;
+
+    if (pfGrid[r][c] === "wall") {
+        pfGrid[r][c] = "empty";
+        cell.className = "cell";
+    } else {
+        pfGrid[r][c] = currentDrawMode;
+        cell.className = `cell ${currentDrawMode}`;
+    }
+}
+
+function resetPathfindingStates() {
+    for (let r = 0; r < pfRows; r++) {
+        for (let c = 0; c < pfCols; c++) {
+            const cell = document.getElementById(`cell-${r}-${c}`);
+            if (cell) {
+                cell.classList.remove("visited", "path");
+            }
         }
     }
 }
 
-/*************************************************
- * PATH HIGHLIGHTING
- *************************************************/
-
-// Highlight final path using parent map
-function highlightPath(parent) {
-    let cur = `${end[0]},${end[1]}`;
-    while (parent[cur]) {
-        let [r, c] = parent[cur].split(",").map(Number);
-        cells[r][c].classList.add("path");
-        cur = parent[cur];
+function clearWalls() {
+    for (let r = 0; r < pfRows; r++) {
+        for (let c = 0; c < pfCols; c++) {
+            pfGrid[r][c] = "empty";
+            const cell = document.getElementById(`cell-${r}-${c}`);
+            if (cell && !cell.classList.contains("start") && !cell.classList.contains("end")) {
+                cell.className = "cell";
+            }
+        }
     }
 }
 
-/*************************************************
- * BFS ALGORITHM
- *************************************************/
+function highlightPathfindingPath(parentMap) {
+    let currKey = `${pfEndNode[0]},${pfEndNode[1]}`;
+    while (parentMap[currKey]) {
+        const [r, c] = parentMap[currKey].split(",").map(Number);
+        if (!(r === pfStartNode[0] && c === pfStartNode[1])) {
+            const cell = document.getElementById(`cell-${r}-${c}`);
+            if (cell) cell.classList.add("path");
+        }
+        currKey = parentMap[currKey];
+    }
+}
 
-async function runBFS() {
-    resetGridState();
-    await resetAlgorithmInfo("BFS", "O(V + E)", "O(V)");
+// BREADTH-FIRST SEARCH (BFS)
+async function runBFSPathfinding() {
+    codeTracer.loadAlgorithm("bfs");
+    engine.resetMetrics();
+    engine.startTimer();
+    resetPathfindingStates();
 
-    let queue = [[...start]];
+    let queue = [[...pfStartNode]];
+    let visited = new Set([`${pfStartNode[0]},${pfStartNode[1]}`]);
+    let parent = {};
+
+    while (queue.length > 0) {
+        let [r, c] = queue.shift();
+        let key = `${r},${c}`;
+
+        engine.addComparison();
+        engine.audio.playPitch(r * pfCols + c, 0, pfRows * pfCols);
+
+        if (r === pfEndNode[0] && c === pfEndNode[1]) {
+            codeTracer.setCommentary("Target reached! Highlighting shortest path.");
+            highlightPathfindingPath(parent);
+            return;
+        }
+
+        if (!(r === pfStartNode[0] && c === pfStartNode[1])) {
+            const cell = document.getElementById(`cell-${r}-${c}`);
+            if (cell) cell.classList.add("visited");
+        }
+
+        await engine.delay();
+
+        for (let [dr, dc] of [[1,0], [-1,0], [0,1], [0,-1]]) {
+            let nr = r + dr, nc = c + dc;
+            let nKey = `${nr},${nc}`;
+
+            if (
+                nr >= 0 && nr < pfRows && nc >= 0 && nc < pfCols &&
+                !visited.has(nKey) && pfGrid[nr][nc] !== "wall"
+            ) {
+                visited.add(nKey);
+                parent[nKey] = key;
+                queue.push([nr, nc]);
+            }
+        }
+    }
+
+    codeTracer.setCommentary("No path found to target.");
+}
+
+// DEPTH-FIRST SEARCH (DFS)
+async function runDFSPathfinding() {
+    codeTracer.loadAlgorithm("dfs");
+    engine.resetMetrics();
+    engine.startTimer();
+    resetPathfindingStates();
+
+    let stack = [[...pfStartNode]];
     let visited = new Set();
     let parent = {};
 
-    while (queue.length) {
-        let [r, c] = queue.shift();
+    while (stack.length > 0) {
+        let [r, c] = stack.pop();
         let key = `${r},${c}`;
 
         if (visited.has(key)) continue;
         visited.add(key);
-        updateSteps();
 
-        let cell = cells[r][c];
-        if (!cell.classList.contains("start"))
-            cell.classList.add("visited");
+        engine.addComparison();
+        engine.audio.playPitch(r * pfCols + c, 0, pfRows * pfCols);
 
-        if (r === end[0] && c === end[1]) {
-            highlightPath(parent);
+        if (r === pfEndNode[0] && c === pfEndNode[1]) {
+            codeTracer.setCommentary("Target reached via DFS!");
+            highlightPathfindingPath(parent);
             return;
         }
 
-        for (let [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+        if (!(r === pfStartNode[0] && c === pfStartNode[1])) {
+            const cell = document.getElementById(`cell-${r}-${c}`);
+            if (cell) cell.classList.add("visited");
+        }
+
+        await engine.delay();
+
+        for (let [dr, dc] of [[1,0], [-1,0], [0,1], [0,-1]]) {
             let nr = r + dr, nc = c + dc;
-            let nextKey = `${nr},${nc}`;
+            let nKey = `${nr},${nc}`;
 
             if (
-                nr >= 0 && nc >= 0 &&
-                nr < rows && nc < cols &&
-                !visited.has(nextKey) &&
-                !cells[nr][nc].classList.contains("wall")
+                nr >= 0 && nr < pfRows && nc >= 0 && nc < pfCols &&
+                !visited.has(nKey) && pfGrid[nr][nc] !== "wall"
             ) {
-                parent[nextKey] = key;
-                queue.push([nr, nc]);
+                parent[nKey] = key;
+                stack.push([nr, nc]);
             }
         }
-        await sleep(speed);
-    }
-}
-
-/*************************************************
- * DFS ALGORITHM (WRAPPER + RECURSION)
- *************************************************/
-
-// Wrapper to start DFS safely
-async function startDFS() {
-    resetGridState();
-    await resetAlgorithmInfo("DFS", "O(V + E)", "O(V)");
-    await runDFS();
-}
-
-// Recursive DFS
-async function runDFS(r = start[0], c = start[1], visited = new Set(), parent = {}) {
-    let key = `${r},${c}`;
-
-    if (
-        r < 0 || c < 0 || r >= rows || c >= cols ||
-        visited.has(key) ||
-        cells[r][c].classList.contains("wall")
-    ) return false;
-
-    visited.add(key);
-    updateSteps();
-
-    let cell = cells[r][c];
-    if (!cell.classList.contains("start"))
-        cell.classList.add("visited");
-
-    if (r === end[0] && c === end[1]) {
-        highlightPath(parent);
-        return true;
     }
 
-    await sleep(speed);
-
-    for (let [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1]]) {
-        let nr = r + dr, nc = c + dc;
-        parent[`${nr},${nc}`] = key;
-        if (await runDFS(nr, nc, visited, parent)) return true;
-    }
-    return false;
+    codeTracer.setCommentary("No path found.");
 }
 
-/*************************************************
- * A* PATHFINDING
- *************************************************/
+// DIJKSTRA'S ALGORITHM
+async function runDijkstraPathfinding() {
+    codeTracer.loadAlgorithm("dijkstra");
+    engine.resetMetrics();
+    engine.startTimer();
+    resetPathfindingStates();
 
-async function runAStar() {
-    resetGridState();
-    await resetAlgorithmInfo("A*", "O(E)", "O(V)");
+    let dist = {};
+    let parent = {};
+    let unvisited = new Set();
 
-    let openSet = new Set([`${start[0]},${start[1]}`]);
+    for (let r = 0; r < pfRows; r++) {
+        for (let c = 0; c < pfCols; c++) {
+            let k = `${r},${c}`;
+            dist[k] = Infinity;
+            unvisited.add(k);
+        }
+    }
+
+    let startKey = `${pfStartNode[0]},${pfStartNode[1]}`;
+    dist[startKey] = 0;
+
+    while (unvisited.size > 0) {
+        let currKey = null;
+        let minDist = Infinity;
+
+        for (let k of unvisited) {
+            if (dist[k] < minDist) {
+                minDist = dist[k];
+                currKey = k;
+            }
+        }
+
+        if (!currKey || minDist === Infinity) break;
+        unvisited.delete(currKey);
+
+        let [r, c] = currKey.split(",").map(Number);
+        engine.addComparison();
+        engine.audio.playPitch(r * pfCols + c, 0, pfRows * pfCols);
+
+        if (r === pfEndNode[0] && c === pfEndNode[1]) {
+            codeTracer.setCommentary("Shortest path found by Dijkstra!");
+            highlightPathfindingPath(parent);
+            return;
+        }
+
+        if (!(r === pfStartNode[0] && c === pfStartNode[1])) {
+            const cell = document.getElementById(`cell-${r}-${c}`);
+            if (cell) cell.classList.add("visited");
+        }
+
+        await engine.delay();
+
+        for (let [dr, dc] of [[1,0], [-1,0], [0,1], [0,-1]]) {
+            let nr = r + dr, nc = c + dc;
+            let nKey = `${nr},${nc}`;
+
+            if (nr >= 0 && nr < pfRows && nc >= 0 && nc < pfCols && unvisited.has(nKey) && pfGrid[nr][nc] !== "wall") {
+                let weightCost = pfGrid[nr][nc] === "weight" ? 5 : 1;
+                let newDist = dist[currKey] + weightCost;
+                if (newDist < dist[nKey]) {
+                    dist[nKey] = newDist;
+                    parent[nKey] = currKey;
+                }
+            }
+        }
+    }
+
+    codeTracer.setCommentary("No path found.");
+}
+
+// A* SEARCH ALGORITHM
+async function runAStarPathfinding() {
+    codeTracer.loadAlgorithm("aStar");
+    engine.resetMetrics();
+    engine.startTimer();
+    resetPathfindingStates();
+
+    let openSet = new Set([`${pfStartNode[0]},${pfStartNode[1]}`]);
     let gScore = {};
     let fScore = {};
     let parent = {};
 
-    gScore[`${start[0]},${start[1]}`] = 0;
-    fScore[`${start[0]},${start[1]}`] = heuristic(start, end);
+    let startKey = `${pfStartNode[0]},${pfStartNode[1]}`;
+    gScore[startKey] = 0;
+    fScore[startKey] = manhattanDist(pfStartNode, pfEndNode);
 
-    while (openSet.size) {
-        let current = [...openSet].reduce((a, b) =>
-            fScore[a] < fScore[b] ? a : b
-        );
+    while (openSet.size > 0) {
+        let currentKey = [...openSet].reduce((a, b) => (fScore[a] || Infinity) < (fScore[b] || Infinity) ? a : b);
+        let [r, c] = currentKey.split(",").map(Number);
 
-        openSet.delete(current);
-        updateSteps();
-
-        let [r, c] = current.split(",").map(Number);
-
-        if (r === end[0] && c === end[1]) {
-            highlightPath(parent);
+        if (r === pfEndNode[0] && c === pfEndNode[1]) {
+            codeTracer.setCommentary("Optimal path found by A*!");
+            highlightPathfindingPath(parent);
             return;
         }
 
-        cells[r][c].classList.add("visited");
-        await sleep(speed);
+        openSet.delete(currentKey);
+        engine.addComparison();
+        engine.audio.playPitch(r * pfCols + c, 0, pfRows * pfCols);
 
-        for (let [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+        if (!(r === pfStartNode[0] && c === pfStartNode[1])) {
+            const cell = document.getElementById(`cell-${r}-${c}`);
+            if (cell) cell.classList.add("visited");
+        }
+
+        await engine.delay();
+
+        for (let [dr, dc] of [[1,0], [-1,0], [0,1], [0,-1]]) {
             let nr = r + dr, nc = c + dc;
-            let neighbor = `${nr},${nc}`;
+            let nKey = `${nr},${nc}`;
 
-            if (
-                nr < 0 || nc < 0 ||
-                nr >= rows || nc >= cols ||
-                cells[nr][nc].classList.contains("wall")
-            ) continue;
+            if (nr >= 0 && nr < pfRows && nc >= 0 && nc < pfCols && pfGrid[nr][nc] !== "wall") {
+                let weightCost = pfGrid[nr][nc] === "weight" ? 5 : 1;
+                let tentativeG = (gScore[currentKey] || Infinity) + weightCost;
 
-            let tentativeG = (gScore[current] || Infinity) + 1;
-
-            if (tentativeG < (gScore[neighbor] || Infinity)) {
-                parent[neighbor] = current;
-                gScore[neighbor] = tentativeG;
-                fScore[neighbor] = tentativeG + heuristic([nr, nc], end);
-                openSet.add(neighbor);
+                if (tentativeG < (gScore[nKey] || Infinity)) {
+                    parent[nKey] = currentKey;
+                    gScore[nKey] = tentativeG;
+                    fScore[nKey] = tentativeG + manhattanDist([nr, nc], pfEndNode);
+                    openSet.add(nKey);
+                }
             }
         }
     }
+
+    codeTracer.setCommentary("No path found.");
 }
 
-/*************************************************
- * HEURISTIC FUNCTION
- *************************************************/
-
-// Manhattan distance heuristic
-function heuristic(a, b) {
+function manhattanDist(a, b) {
     return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
+}
+
+// MAZE GENERATORS
+function generateRandomMaze() {
+    clearWalls();
+    for (let r = 0; r < pfRows; r++) {
+        for (let c = 0; c < pfCols; c++) {
+            if (Math.random() < 0.28) {
+                if (!(r === pfStartNode[0] && c === pfStartNode[1]) && !(r === pfEndNode[0] && c === pfEndNode[1])) {
+                    pfGrid[r][c] = "wall";
+                    const cell = document.getElementById(`cell-${r}-${c}`);
+                    if (cell) cell.className = "cell wall";
+                }
+            }
+        }
+    }
 }

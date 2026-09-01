@@ -2,61 +2,238 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>DSA Visualizer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSA Visualizer - Advanced Algorithm & Data Structures Studio</title>
+    
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- CSS Stylesheets -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/grid.css">
+    <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
 
-    <h1>DSA Visualizer</h1>
+    <!-- Header Navigation -->
+    <header class="app-header">
+        <div class="brand-logo">
+            <i class="fa-solid fa-network-wired"></i>
+            <div>
+                <h1>AlgoViz Studio</h1>
+                <span class="brand-badge">DSA Suite v2.0</span>
+            </div>
+        </div>
 
-    <!-- Controls -->
-    <div class="controls">
-        <button onclick="generateArray()">Generate Array</button>
-        <button onclick="bubbleSort()">Bubble Sort</button>
-        <button onclick="mergeSort()">Merge Sort</button>
-        <button onclick="quickSort()">Quick Sort</button>
-        <button onclick="binarySearch()">Binary Search</button>
-    </div>
+        <nav class="nav-tabs">
+            <button class="tab-btn active" data-tab="tab-sorting">
+                <i class="fa-solid fa-chart-column"></i> Sorting
+            </button>
+            <button class="tab-btn" data-tab="tab-searching">
+                <i class="fa-solid fa-magnifying-glass"></i> Searching
+            </button>
+            <button class="tab-btn" data-tab="tab-pathfinding">
+                <i class="fa-solid fa-route"></i> Pathfinding
+            </button>
+            <button class="tab-btn" data-tab="tab-trees">
+                <i class="fa-solid fa-diagram-project"></i> Trees & DS
+            </button>
+            <button class="tab-btn" data-tab="tab-dp">
+                <i class="fa-solid fa-table-cells"></i> Dynamic Prog.
+            </button>
+        </nav>
 
-    <!-- Speed -->
-    <div class="controls">
-        <label>Speed</label>
-        <input type="range" min="50" max="1000" value="300" id="speedSlider">
-    </div>
+        <div class="header-actions">
+            <button class="icon-btn active" id="btn-audio-toggle" title="Toggle Sound Feedback">
+                <i class="fa-solid fa-volume-high"></i>
+            </button>
+        </div>
+    </header>
 
-    <!-- Array -->
-    <div id="array-container"></div>
+    <!-- Main Container -->
+    <main class="app-container">
+        <!-- Visualizer Stage -->
+        <section class="visualizer-stage">
+            
+            <!-- Universal Control Deck -->
+            <div class="control-deck">
+                <div class="control-group">
+                    <button class="btn btn-primary" id="btn-play">
+                        <i class="fa-solid fa-play"></i> Play
+                    </button>
+                    <button class="btn btn-secondary btn-icon-only" id="btn-step-back" title="Step Backward">
+                        <i class="fa-solid fa-backward-step"></i>
+                    </button>
+                    <button class="btn btn-secondary btn-icon-only" id="btn-step-fwd" title="Step Forward">
+                        <i class="fa-solid fa-forward-step"></i>
+                    </button>
+                    <button class="btn btn-secondary" id="btn-reset">
+                        <i class="fa-solid fa-rotate-left"></i> Reset
+                    </button>
+                </div>
 
-    <h2>Pathfinding Visualizer</h2>
+                <!-- Dynamic Algorithm Selectors per tab -->
+                <div class="control-group" id="algo-selector-container">
+                    <select id="algo-select">
+                        <!-- Populated by index.js based on active tab -->
+                    </select>
+                </div>
 
-    <!-- Pathfinding Controls -->
-    <div class="grid-controls">
-      <button onclick="createGrid()">Create Grid</button>
-      <button onclick="runBFS()">Run BFS</button>
-      <button onclick="startDFS()">Run DFS</button>
-      <button onclick="runAStar()">Run A*</button>
-    </div>
+                <!-- Speed & Size Controls -->
+                <div class="control-group">
+                    <div class="slider-wrapper">
+                        <span class="control-label"><i class="fa-solid fa-bolt"></i> Speed</span>
+                        <input type="range" min="10" max="800" value="300" id="slider-speed">
+                        <span class="slider-val" id="val-speed">300ms</span>
+                    </div>
 
-    <!-- Algorithm Info Panel -->
-     <div id="info-panel">
-      <h3 id="algo-name">Algorithm: -</h3>
-      <p id="algo-time">Time: -</p>
-      <p id="algo-space">Space: -</p>
-      <p id="step-count">Steps: 0</p>
-    </div>
+                    <div class="slider-wrapper" id="size-slider-group">
+                        <span class="control-label"><i class="fa-solid fa-bars"></i> Size</span>
+                        <input type="range" min="10" max="50" value="20" id="slider-size">
+                        <span class="slider-val" id="val-size">20</span>
+                    </div>
+                </div>
 
+                <!-- Module-Specific Action Controls -->
+                <div class="control-group" id="module-custom-controls">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
 
-    <!-- Grid -->
-    <div id="grid"></div>
+            <!-- Visualizer Viewport Canvas Area -->
+            <div class="canvas-container">
+                <div class="canvas-header">
+                    <div class="canvas-title" id="canvas-title-text">
+                        <i class="fa-solid fa-display"></i> Interactive Visualization Viewport
+                    </div>
+                    <div class="canvas-legend" id="canvas-legend">
+                        <!-- Custom legends populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="render-area">
+                    <!-- TAB 1: SORTING -->
+                    <div class="tab-content active" id="tab-sorting">
+                        <div id="array-container"></div>
+                    </div>
+
+                    <!-- TAB 2: SEARCHING -->
+                    <div class="tab-content" id="tab-searching">
+                        <!-- Searching array renders into array-container -->
+                    </div>
+
+                    <!-- TAB 3: PATHFINDING -->
+                    <div class="tab-content" id="tab-pathfinding">
+                        <div class="pathfinding-wrapper">
+                            <div id="grid"></div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 4: TREES & DATA STRUCTURES -->
+                    <div class="tab-content" id="tab-trees">
+                        <div style="display:flex; flex-direction:column; gap:1rem; width:100%;">
+                            <div class="tree-container">
+                                <svg id="tree-canvas-svg" width="100%" height="100%"></svg>
+                            </div>
+                            
+                            <div class="ds-container">
+                                <div class="ds-box">
+                                    <h4 style="margin-bottom:0.5rem; font-size:0.9rem; color:var(--accent-sky);">Stack (LIFO)</h4>
+                                    <div class="stack-frame" id="stack-frame"></div>
+                                </div>
+                                <div class="ds-box">
+                                    <h4 style="margin-bottom:0.5rem; font-size:0.9rem; color:var(--accent-purple);">Queue (FIFO)</h4>
+                                    <div class="queue-frame" id="queue-frame"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 5: DYNAMIC PROGRAMMING -->
+                    <div class="tab-content" id="tab-dp">
+                        <div class="dp-table-wrapper" id="dp-table-container"></div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Side Panel: Info & Code Tracer -->
+        <aside class="side-panel">
+            <!-- Metrics Card -->
+            <div class="panel-card">
+                <div class="card-title">
+                    <span><i class="fa-solid fa-chart-line"></i> Performance Metrics</span>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-box">
+                        <span class="metric-label">Comparisons</span>
+                        <span class="metric-val" id="metric-comparisons">0</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">Swaps / Writes</span>
+                        <span class="metric-val" id="metric-swaps">0</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">Execution Time</span>
+                        <span class="metric-val" id="metric-time">0.0s</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">Recorded Steps</span>
+                        <span class="metric-val" id="metric-steps">0</span>
+                    </div>
+                </div>
+
+                <div class="complexity-wrapper">
+                    <div class="complexity-row">
+                        <span class="control-label">Time Complexity (Best):</span>
+                        <span class="badge" id="badge-time-best">O(n)</span>
+                    </div>
+                    <div class="complexity-row">
+                        <span class="control-label">Time Complexity (Avg):</span>
+                        <span class="badge" id="badge-time-avg">O(n log n)</span>
+                    </div>
+                    <div class="complexity-row">
+                        <span class="control-label">Time Complexity (Worst):</span>
+                        <span class="badge" id="badge-time-worst">O(n log n)</span>
+                    </div>
+                    <div class="complexity-row">
+                        <span class="control-label">Auxiliary Space:</span>
+                        <span class="badge" id="badge-space">O(1)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Code Tracer Panel -->
+            <div class="panel-card" style="flex:1;">
+                <div class="card-title">
+                    <span><i class="fa-solid fa-code"></i> Live Pseudocode Tracer</span>
+                    <span id="algo-title" style="font-size:0.82rem; color:var(--accent-sky); font-weight:600;">Bubble Sort</span>
+                </div>
+
+                <div class="code-tracer" id="code-tracer-lines">
+                    <!-- Lines injected dynamically -->
+                </div>
+
+                <div class="step-commentary" id="step-commentary">
+                    Select an algorithm and click Play to start visualization.
+                </div>
+            </div>
+        </aside>
+    </main>
 
     <!-- Scripts (ORDER MATTERS) -->
-    <script src="js/index.js"></script>
+    <script src="js/engine.js"></script>
+    <script src="js/codeTracer.js"></script>
     <script src="js/sorting.js"></script>
     <script src="js/searching.js"></script>
     <script src="js/pathfinding.js"></script>
+    <script src="js/trees.js"></script>
+    <script src="js/dp.js"></script>
+    <script src="js/index.js"></script>
 
 </body>
 </html>
